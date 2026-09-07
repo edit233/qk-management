@@ -1,0 +1,25 @@
+# ========== 阶段一：构建 ==========
+FROM maven:3.9-eclipse-temurin-21 AS build
+
+WORKDIR /app
+COPY backend/qk-parent/pom.xml backend/qk-parent/pom.xml
+COPY backend/qk-parent/qk-common/pom.xml backend/qk-parent/qk-common/pom.xml
+COPY backend/qk-parent/qk-entity/pom.xml backend/qk-parent/qk-entity/pom.xml
+COPY backend/qk-parent/qk-management/pom.xml backend/qk-parent/qk-management/pom.xml
+
+# 先下载依赖（利用 Docker 缓存层，源码不变时跳过）
+RUN cd backend/qk-parent && mvn dependency:go-offline -B
+
+COPY backend/ backend/
+
+RUN cd backend/qk-parent && mvn package -DskipTests -B
+
+# ========== 阶段二：运行 ==========
+FROM eclipse-temurin:21-jre
+
+WORKDIR /app
+COPY --from=build /app/backend/qk-parent/qk-management/target/qk-management-*.jar app.jar
+
+EXPOSE 8080
+
+ENTRYPOINT ["java", "-jar", "app.jar"]

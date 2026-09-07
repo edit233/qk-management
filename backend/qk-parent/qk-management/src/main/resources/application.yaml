@@ -1,0 +1,17 @@
+#数据库连接信息
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/qk
+    username: root
+    password: CHANGE_ME
+
+#mybatis-plus配置
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true  # 开启驼峰命名
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # 打印sql
+  global-config:
+    db-config:
+      id-type: auto # 全局主键策略 数据库自增
+  mapper-locations: classpath*:/mappers/*.xml # 映射文件位置
