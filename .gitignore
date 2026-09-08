@@ -36,9 +36,6 @@ frontend/conf/win-utf
 frontend/contrib/
 frontend/docs/
 
-# Frontend built assets (Docker build needs index.html and favicon)
-frontend/html/assets/
-
 # OS
 Thumbs.db
 .DS_Store
