@@ -10,10 +10,10 @@ frontend/nginx.exe
 frontend/nginx-1.24.0-qk.zip
 
 # Docker
-.env
 
 # OS
 Thumbs.db
 .DS_Store
 
 backend/qk-parent/log/
+.env
