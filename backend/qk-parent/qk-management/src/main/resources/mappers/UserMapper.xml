@@ -25,4 +25,26 @@
         </where>
         order by u.create_time desc
     </select>
+
+    <!-- 根据角色标签查询用户信息 -->
+    <select id="selectUserByRoleLabel" resultType="com.itheima.entity.User">
+        select *
+        from user
+        where role_label = #{roleLabel}
+    </select>
+
+    <!-- 根据部门ID查询用户信息 -->
+    <select id="selectUserByDeptId" resultType="com.itheima.entity.User">
+        select *
+        from user
+        where dept_id = #{deptId}
+    </select>
+
+    <!-- 根据用户名查询用户信息 -->
+    <select id="selectByUserName" resultType="com.itheima.response.LoginResponse">
+        SELECT u.*, r.label as role_label
+        FROM user u
+                 LEFT JOIN role r ON u.role_id = r.id
+        WHERE u.username = #{username}
+    </select>
 </mapper>

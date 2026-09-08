@@ -55,10 +55,11 @@ public class UserController {
         return Result.success(user);
     }
 
-    @PutMapping("/list")
-    public Result updateUser(){
-        log.info("查询所有用户");
-        return Result.success(userService.list());
+    @PutMapping()
+    public Result updateUser(@RequestBody User user){
+        log.info("修改用户信息,参数:user={}",user);
+        boolean b = userService.saveOrUpdate(user);
+        return b ? Result.success():Result.error("修改失败");
     }
 
     @GetMapping("/role/{roleLabel}")

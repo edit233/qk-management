@@ -6,12 +6,20 @@ services:
     container_name: qk-backend
     restart: always
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:mysql://${MYSQL_HOST:-localhost}:${MYSQL_PORT:-3306}/${MYSQL_DB:-qk}?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
-      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_URL=jdbc:mysql://${MYSQL_HOST:-mysql}:${MYSQL_PORT:-3306}/${MYSQL_DB:-qk}?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+      - SPRING_DATASOURCE_USERNAME=${MYSQL_USER:-qk}
       - SPRING_DATASOURCE_PASSWORD=${MYSQL_PASSWORD:-123456}
+      - MYSQL_HOST=${MYSQL_HOST:-mysql}
+      - MYSQL_PORT=${MYSQL_PORT:-3306}
+      - MYSQL_DB=${MYSQL_DB:-qk}
+      - MYSQL_USER=${MYSQL_USER:-qk}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-123456}
+      - OSS_ENDPOINT=${OSS_ENDPOINT:-oss-cn-beijing.aliyuncs.com}
+      - OSS_BUCKET_NAME=${OSS_BUCKET_NAME:-giao233}
+      - OSS_ACCESS_KEY_ID=${OSS_ACCESS_KEY_ID}
+      - OSS_ACCESS_KEY_SECRET=${OSS_ACCESS_KEY_SECRET}
     ports:
       - "8080:8080"
-
     depends_on:
       mysql:
         condition: service_healthy
@@ -32,7 +40,7 @@ services:
     container_name: qk-mysql
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD:-123456}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123456}
       MYSQL_DATABASE: ${MYSQL_DB:-qk}
     ports:
       - "3306:3306"

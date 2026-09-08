@@ -1,19 +1,46 @@
 # IDE
 .idea/
 *.iml
+*.log
 
 # Build output
-backend/qk-parent/*/target/
+**/target/
+*.class
+*.jar
+*.war
+
+# Env & secrets
+.env
+.env.local
+.env.*.local
+
+# Logs
+backend/qk-parent/log/
 frontend/logs/
+
+# Temp & binaries
 frontend/temp/
 frontend/nginx.exe
 frontend/nginx-1.24.0-qk.zip
 
-# Docker
+# Nginx default files (not project-specific, only keep nginx.docker.conf)
+frontend/conf/fastcgi.conf
+frontend/conf/fastcgi_params
+frontend/conf/koi-utf
+frontend/conf/koi-win
+frontend/conf/mime.types
+frontend/conf/nginx.conf
+frontend/conf/scgi_params
+frontend/conf/uwsgi_params
+frontend/conf/win-utf
+frontend/contrib/
+frontend/docs/
+
+# Frontend built assets (deployed via Docker, not source-controlled)
+frontend/html/assets/
+frontend/html/favicon.ico
+frontend/html/index.html
 
 # OS
 Thumbs.db
 .DS_Store
-
-backend/qk-parent/log/
-.env

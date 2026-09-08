@@ -2,9 +2,9 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/qk
-    username: root
-    password: CHANGE_ME
+    url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DB}?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    username: ${MYSQL_USER}
+    password: ${MYSQL_PASSWORD}
 
 #mybatis-plus配置
 mybatis-plus:
@@ -15,3 +15,11 @@ mybatis-plus:
     db-config:
       id-type: auto # 全局主键策略 数据库自增
   mapper-locations: classpath*:/mappers/*.xml # 映射文件位置
+
+#阿里云OSS配置
+qk:
+  oss:
+    endpoint: ${OSS_ENDPOINT}
+    bucketName: ${OSS_BUCKET_NAME}
+    accessKeyId: ${OSS_ACCESS_KEY_ID}
+    accessKeySecret: ${OSS_ACCESS_KEY_SECRET}

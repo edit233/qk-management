@@ -19,10 +19,10 @@ public class GlobalExceptionHandler {
         return Result.error("对不起,操作失败,请联系管理员");
     }
 
-    @ExceptionHandler(Exception.class) //处理Exception类型的异常
-    public Result handlerException(Exception e){//这个参数用于接收捕获到的异常
+    @ExceptionHandler(Exception.class)
+    public Result handlerException(Exception e){
         log.error("服务器发生异常", e);
-        //捕获到异常之后，响应一个标准的Result
-        return Result.error("对不起,操作失败,请联系管理员");
+        return Result.error(e.getMessage());
     }
+
 }
