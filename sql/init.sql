@@ -1,7 +1,3 @@
--- 创建 qk 用户并授权（Docker 初始化时自动执行）
-CREATE USER IF NOT EXISTS 'qk'@'%' IDENTIFIED BY '123456';
-GRANT ALL PRIVILEGES ON qk.* TO 'qk'@'%';
-FLUSH PRIVILEGES;
 -- MySQL dump 10.13  Distrib 8.4.9, for Win64 (x86_64)
 --
 -- Host: localhost    Database: qk
@@ -259,4 +255,3 @@ UNLOCK TABLES;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2026-09-08  9:44:38
-
