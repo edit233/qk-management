@@ -11,10 +11,13 @@ import com.itheima.mapper.UserMapper;
 import com.itheima.request.UserDto;
 import com.itheima.response.LoginResponse;
 import com.itheima.service.UserService;
+import com.itheima.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
@@ -57,12 +60,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new RuntimeException("用户被冻结");
         }
 
-        if (loginUser.getPassword().equals(DigestUtil.md5Hex(password))){
+        if (!loginUser.getPassword().equals(DigestUtil.md5Hex(password))){
             throw new RuntimeException("密码错误");
         }
 
-        loginUser.setToken("");
+        //生成token
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("id", loginUser.getId());
+        claims.put("username", loginUser.getUsername());
+        String token = JwtUtil.generateToken(claims);
+
+        // 构造登录结果
+        loginUser.setToken(token);
         loginUser.setPassword(null);
         return loginUser;
     }
+
+
 }

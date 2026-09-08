@@ -29,5 +29,6 @@ public class LoginController {
         LoginResponse loginResult = userService.login(user.getUsername(), user.getPassword());
         log.info("用户登录结果: {}", loginResult);
         return Result.success(loginResult);
+
     }
 }
