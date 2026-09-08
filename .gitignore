@@ -36,10 +36,8 @@ frontend/conf/win-utf
 frontend/contrib/
 frontend/docs/
 
-# Frontend built assets (deployed via Docker, not source-controlled)
+# Frontend built assets (Docker build needs index.html and favicon)
 frontend/html/assets/
-frontend/html/favicon.ico
-frontend/html/index.html
 
 # OS
 Thumbs.db
