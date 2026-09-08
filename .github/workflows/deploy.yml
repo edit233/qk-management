@@ -16,19 +16,17 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cat > /opt/qk-management/.env << 'EOF'
-            MYSQL_HOST=mysql
-            MYSQL_PORT=3306
-            MYSQL_DB=qk
-            MYSQL_USER=qk
-            MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}
-            MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}
-            APP_PORT=90
-            OSS_ENDPOINT=${{ secrets.OSS_ENDPOINT }}
-            OSS_BUCKET_NAME=${{ secrets.OSS_BUCKET_NAME }}
-            OSS_ACCESS_KEY_ID=${{ secrets.OSS_ACCESS_KEY_ID }}
-            OSS_ACCESS_KEY_SECRET=${{ secrets.OSS_ACCESS_KEY_SECRET }}
-            EOF
+            printf 'MYSQL_HOST=mysql\n' > /opt/qk-management/.env
+            printf 'MYSQL_PORT=3306\n' >> /opt/qk-management/.env
+            printf 'MYSQL_DB=qk\n' >> /opt/qk-management/.env
+            printf 'MYSQL_USER=qk\n' >> /opt/qk-management/.env
+            printf 'MYSQL_PASSWORD=%s\n' "${{ secrets.MYSQL_PASSWORD }}" >> /opt/qk-management/.env
+            printf 'MYSQL_ROOT_PASSWORD=%s\n' "${{ secrets.MYSQL_ROOT_PASSWORD }}" >> /opt/qk-management/.env
+            printf 'APP_PORT=90\n' >> /opt/qk-management/.env
+            printf 'OSS_ENDPOINT=%s\n' "${{ secrets.OSS_ENDPOINT }}" >> /opt/qk-management/.env
+            printf 'OSS_BUCKET_NAME=%s\n' "${{ secrets.OSS_BUCKET_NAME }}" >> /opt/qk-management/.env
+            printf 'OSS_ACCESS_KEY_ID=%s\n' "${{ secrets.OSS_ACCESS_KEY_ID }}" >> /opt/qk-management/.env
+            printf 'OSS_ACCESS_KEY_SECRET=%s\n' "${{ secrets.OSS_ACCESS_KEY_SECRET }}" >> /opt/qk-management/.env
 
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
