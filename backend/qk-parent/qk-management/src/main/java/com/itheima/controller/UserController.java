@@ -3,13 +3,15 @@ package com.itheima.controller;
 import cn.hutool.crypto.digest.DigestUtil;
 import com.itheima.common.PageResult;
 import com.itheima.common.Result;
+import com.itheima.entity.Clue;
 import com.itheima.entity.User;
-import com.itheima.request.UserDto;
+import com.itheima.request.UserRequest;
 import com.itheima.service.impl.UserServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -27,9 +29,9 @@ public class UserController {
      * 条件分页查询用户列表
      */
     @GetMapping
-    public Result getUsers(UserDto userDto) {
-        log.info("分页查询用户,参数:name={},phone={},deptId={},status={},page={},pageSize={}", userDto.getName(), userDto.getPhone(), userDto.getDeptId(), userDto.getStatus(), userDto.getPage(), userDto.getPageSize());
-        PageResult<User> userPage = userService.getUsers(userDto);
+    public Result getUsers(UserRequest userRequest) {
+        log.info("分页查询用户,参数:name={},phone={},deptId={},status={},page={},pageSize={}", userRequest.getName(), userRequest.getPhone(), userRequest.getDeptId(), userRequest.getStatus(), userRequest.getPage(), userRequest.getPageSize());
+        PageResult<User> userPage = userService.getUsers(userRequest);
         return Result.success(userPage);
     }
 
@@ -73,4 +75,6 @@ public class UserController {
         log.info("根据部门查询用户,参数:deptId={}", deptId);
         return Result.success(userService.selectUserByDeptId(deptId));
     }
+
+
 }

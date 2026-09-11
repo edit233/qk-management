@@ -3,7 +3,7 @@ package com.itheima.controller;
 import com.itheima.common.PageResult;
 import com.itheima.common.Result;
 import com.itheima.entity.Activity;
-import com.itheima.request.ActivityDto;
+import com.itheima.request.ActivityRequest;
 import com.itheima.service.impl.ActivityServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,9 +17,9 @@ public class ActivityController {
     private ActivityServiceImpl activityService;
 
     @GetMapping
-    public Result getActivityPageList(ActivityDto activityDto) {
-        log.info("分页查询活动,参数:channel={},type={}",activityDto.getChannel(),activityDto.getType());
-        PageResult<Activity> pageResult = activityService.findActivityByPage(activityDto);
+    public Result getActivityPageList(ActivityRequest activityRequest) {
+        log.info("分页查询活动,参数:channel={},type={}", activityRequest.getChannel(), activityRequest.getType());
+        PageResult<Activity> pageResult = activityService.findActivityByPage(activityRequest);
         return Result.success(pageResult);
     }
 

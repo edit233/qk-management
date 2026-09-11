@@ -1,5 +1,6 @@
 package com.itheima.controller;
 
+import com.itheima.aspect.anno.LogOperation;
 import com.itheima.common.PageResult;
 import com.itheima.common.Result;
 import com.itheima.entity.Dept;
@@ -33,6 +34,7 @@ public class DeptController {
      * @param pageSize 每页记录数
      * @return 分页查询结果
      */
+    @LogOperation
     @GetMapping
     public Result listDepts(String name, Integer status,
                             @RequestParam(defaultValue = "1") Integer page,
@@ -48,6 +50,7 @@ public class DeptController {
      * @param id 部门ID
      * @return 查询结果
      */
+    @LogOperation
     @GetMapping("/{id}")
     public Result findById(@PathVariable Integer id) {
         log.info("根据ID查询部门,id={}",id);
@@ -61,6 +64,7 @@ public class DeptController {
      * @param dept 部门信息
      * @return 统一响应结果
      */
+    @LogOperation
     @PutMapping
     public Result updateDept(@RequestBody Dept dept) {
         log.info("修改部门,参数:{}",dept);
@@ -74,13 +78,14 @@ public class DeptController {
      * @param id 部门ID
      * @return 统一响应结果
      */
+    @LogOperation
     @DeleteMapping("/{id}")
     public Result deleteDept(@PathVariable Integer id) {
         log.info("删除部门,id={}",id);
         deptService.deleteById(id);
         return Result.success();
     }
-
+    @LogOperation
     @GetMapping("/list")
     public Result allDeptList(){
         log.info("查询所有部门");

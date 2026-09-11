@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itheima.mapper.CustomerMapper">
+
+    <select id="getCustomerPageList" resultType="com.itheima.entity.Customer">
+        select c.*, co.name as courseName
+        from customer c
+        left join course co on c.course_id = co.id
+        <where>
+            <if test="request.name != null and request.name != ''">
+                and c.name like concat('%',#{request.name},'%')
+            </if>
+            <if test="request.phone != null and request.phone != ''">
+                and c.phone like concat('%',#{request.phone},'%')
+            </if>
+            <if test="request.channel != null">
+                and c.channel = #{request.channel}
+            </if>
+            <if test="request.subject != null">
+                and c.subject = #{request.subject}
+            </if>
+        </where>
+        order by c.update_time desc
+    </select>
+
+</mapper>

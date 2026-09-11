@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 线索实体类
@@ -34,4 +35,15 @@ public class Clue {
     private LocalDateTime createTime; // 创建时间
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime; // 修改时间
+
+    @TableField(exist = false)//表示这个字段在数据库中不存在
+    private String assignName; // 跟进人姓名（联表查询，非线索表字段）
+
+    //线索跟进记录列表 - 扩展
+    @TableField(exist = false)
+    private List<ClueTrackRecord> trackRecords;
+
+    //扩展属性
+    @TableField(exist = false)
+    private String record;
 }

@@ -2,12 +2,16 @@ package com.itheima.request;
 
 import lombok.Data;
 
+/**
+ * /users?name=张&status=1&phone=13309091111&deptId=5&page=1&pageSize=5
+ * 封装查询参数
+ */
 @Data
 public class UserRequest {
-    private String name; // 用户名
-    private Integer status; // 状态：0-禁用，1-启用
-    private String phone; // 手机号
-    private Long deptId; // 部门ID
-    private Integer page = 1;
-    private Integer pageSize = 10;
+    private String name; // 姓名
+    private Integer status; // 状态
+    private String phone; // 手机
+    private Integer deptId; // 部门
+    private Integer page = 1; // 页码
+    private Integer pageSize = 10; // 每页条数
 }

@@ -3,7 +3,7 @@ package com.itheima.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.itheima.common.PageResult;
-import com.itheima.request.UserDto;
+import com.itheima.request.UserRequest;
 import com.itheima.entity.User;
 import com.itheima.response.LoginResponse;
 
@@ -13,10 +13,10 @@ public interface UserService extends IService<User> {
     /**
      * 条件分页查询用户列表
      *
-     * @param userDto 查询参数
+     * @param userRequest 查询参数
      * @return 查询结果
      */
-    PageResult<User> getUsers(UserDto userDto);
+    PageResult<User> getUsers(UserRequest userRequest);
 
     List<User> selectUserByRoleLabel(String roleLabel);
 

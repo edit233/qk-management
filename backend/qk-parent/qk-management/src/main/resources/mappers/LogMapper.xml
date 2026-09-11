@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itheima.mapper.LogMapper">
+
+    <select id="getLogList" resultType="com.itheima.entity.OperateLog">
+        select l.*, u.name as operateUserName
+        from operate_log l
+        left join user u on l.operate_user_id = u.id
+        <where>
+            <if test="logRequest.operateUserName != null and logRequest.operateUserName != ''">
+                and u.name like concat('%',#{logRequest.operateUserName},'%')
+            </if>
+        </where>
+    </select>
+</mapper>

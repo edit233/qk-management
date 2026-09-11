@@ -10,17 +10,17 @@
         left join dept d on u.dept_id = d.id
         left join role r on u.role_id = r.id
         <where>
-            <if test="userDto.name != null and userDto.name != ''">
-                and u.name like concat('%', #{userDto.name}, '%')
+            <if test="userRequest.name != null and userRequest.name != ''">
+                and u.name like concat('%', #{userRequest.name}, '%')
             </if>
-            <if test="userDto.status != null">
-                and u.status = #{userDto.status}
+            <if test="userRequest.status != null">
+                and u.status = #{userRequest.status}
             </if>
-            <if test="userDto.phone != null and userDto.phone != ''">
-                and u.phone like concat('%', #{userDto.phone}, '%')
+            <if test="userRequest.phone != null and userRequest.phone != ''">
+                and u.phone like concat('%', #{userRequest.phone}, '%')
             </if>
-            <if test="userDto.deptId != null">
-                and u.dept_id = #{userDto.deptId}
+            <if test="userRequest.deptId != null">
+                and u.dept_id = #{userRequest.deptId}
             </if>
         </where>
         order by u.create_time desc
@@ -28,9 +28,9 @@
 
     <!-- 根据角色标签查询用户信息 -->
     <select id="selectUserByRoleLabel" resultType="com.itheima.entity.User">
-        select *
-        from user
-        where role_label = #{roleLabel}
+        select user.*
+        from user,role
+        where role_id = (select role.id where label = #{roleLabel});
     </select>
 
     <!-- 根据部门ID查询用户信息 -->

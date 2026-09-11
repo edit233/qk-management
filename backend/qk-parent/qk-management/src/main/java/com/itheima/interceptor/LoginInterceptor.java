@@ -1,6 +1,8 @@
 package com.itheima.interceptor;
 
 import com.itheima.util.JwtUtil;
+import com.itheima.util.UserHoler;
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +33,10 @@ public class LoginInterceptor implements HandlerInterceptor {
 
         //3. 解析token，如果解析失败，返回错误结果（未登录）。
         try {
-            JwtUtil.parseToken(jwt);
+            Claims claims = JwtUtil.parseToken(jwt);
+            //获取用户id, 存入ThreadLocal
+            Integer userId = claims.get("id", Integer.class);
+            UserHoler.setCurrentUser(userId);
         } catch (Exception e) {
             e.printStackTrace();
             log.info("解析令牌失败, 返回错误结果");
@@ -53,6 +58,8 @@ public class LoginInterceptor implements HandlerInterceptor {
     //视图渲染完毕后执行，最后执行
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+        //用户删除
+        UserHoler.removeCurrentUser();
         System.out.println("afterCompletion .... ");
     }
 }

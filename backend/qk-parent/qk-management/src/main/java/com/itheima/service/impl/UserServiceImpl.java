@@ -8,7 +8,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.itheima.common.PageResult;
 import com.itheima.entity.User;
 import com.itheima.mapper.UserMapper;
-import com.itheima.request.UserDto;
+import com.itheima.request.UserRequest;
 import com.itheima.response.LoginResponse;
 import com.itheima.service.UserService;
 import com.itheima.util.JwtUtil;
@@ -25,12 +25,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Autowired
     UserMapper userMapper;
 
-    public PageResult<User> getUsers(UserDto userDto) {
+    public PageResult<User> getUsers(UserRequest userRequest) {
         // 1.设置分页条件
-        Page<User> p = new Page<>(userDto.getPage(), userDto.getPageSize());
+        Page<User> p = new Page<>(userRequest.getPage(), userRequest.getPageSize());
 
         // 2. 执行分页查询
-        IPage<User> userPage = userMapper.getUsers(p, userDto);
+        IPage<User> userPage = userMapper.getUsers(p, userRequest);
 
         // 3. 封装返回结果
         return new PageResult<>(userPage.getTotal(), userPage.getRecords());

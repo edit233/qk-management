@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itheima.mapper.BusinessMapper">
+
+    <resultMap id="BusinessResultMap" type="com.itheima.entity.Business">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="phone" column="phone"/>
+        <result property="gender" column="gender"/>
+        <result property="age" column="age"/>
+        <result property="wechat" column="wechat"/>
+        <result property="qq" column="qq"/>
+        <result property="subject" column="subject"/>
+        <result property="courseId" column="course_id"/>
+        <result property="degree" column="degree"/>
+        <result property="jobStatus" column="job_status"/>
+        <result property="channel" column="channel"/>
+        <result property="remark" column="remark"/>
+        <result property="status" column="status"/>
+        <result property="userId" column="user_id"/>
+        <result property="clueId" column="clue_id"/>
+        <result property="nextTime" column="next_time"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <collection property="trackRecords" ofType="com.itheima.entity.BusinessTrackRecord">
+            <id property="id" column="tr_id"/>
+            <result property="businessId" column="tr_business_id"/>
+            <result property="userId" column="tr_user_id"/>
+            <result property="trackStatus" column="track_status"/>
+            <result property="keyItems" column="key_items"/>
+            <result property="nextTime" column="tr_next_time"/>
+            <result property="record" column="record"/>
+            <result property="createTime" column="tr_create_time"/>
+            <result property="assignName" column="tr_assign_name"/>
+        </collection>
+    </resultMap>
+
+    <select id="getBusinessById" resultMap="BusinessResultMap">
+        SELECT b.id,
+               b.name,
+               b.phone,
+               b.gender,
+               b.age,
+               b.wechat,
+               b.qq,
+               b.subject,
+               b.course_id,
+               b.degree,
+               b.job_status,
+               b.channel,
+               b.remark,
+               b.status,
+               b.user_id,
+               b.clue_id,
+               b.next_time,
+               b.create_time,
+               b.update_time,
+               tr.id          tr_id,
+               tr.business_id tr_business_id,
+               tr.user_id     tr_user_id,
+               tr.track_status,
+               tr.key_items,
+               tr.next_time   tr_next_time,
+               tr.record,
+               tr.create_time tr_create_time,
+               u.name         tr_assign_name
+        FROM business b
+                 LEFT JOIN business_track_record tr ON b.id = tr.business_id
+                 LEFT JOIN user u ON tr.user_id = u.id
+        WHERE b.id = #{id}
+        ORDER BY tr.create_time DESC
+    </select>
+
+    <select id="getBusinessPageList" resultType="com.itheima.entity.Business">
+        select b.*,
+        u.name as assign_name
+        from business b
+        left join user u on b.user_id = u.id
+        <where>
+            <if test="BusinessesRequest.businessId != null">
+                and b.id = #{BusinessesRequest.businessId}
+            </if>
+            <if test="BusinessesRequest.name != null and BusinessesRequest.name != ''">
+                and b.name like concat('%',#{BusinessesRequest.name},'%')
+            </if>
+            <if test="BusinessesRequest.phone != null and BusinessesRequest.phone != ''">
+                and b.phone like concat('%',#{BusinessesRequest.phone},'%')
+            </if>
+            <if test="BusinessesRequest.status != null">
+                and b.status = #{BusinessesRequest.status}
+            </if>
+            <if test="BusinessesRequest.assignName != null and BusinessesRequest.assignName != ''">
+                and u.name like concat('%',#{BusinessesRequest.assignName},'%')
+            </if>
+            AND b.status not in (4, 5)
+        </where>
+        order by b.update_time desc
+    </select>
+
+    <select id="getPoolClues" resultType="com.itheima.entity.Business">
+        select *
+        from business
+        <where>
+            <if test="BusinessPoolRequest.businessId != null">
+                and id = #{BusinessPoolRequest.businessId}
+            </if>
+            <if test="BusinessPoolRequest.phone != null">
+                and phone = #{BusinessPoolRequest.phone}
+            </if>
+            <if test="BusinessPoolRequest.name != null and BusinessPoolRequest.name != ''">
+                and name like concat('%',#{BusinessPoolRequest.name},'%')
+            </if>
+            <if test="BusinessPoolRequest.subject != null">
+                and subject = #{BusinessPoolRequest.subject}
+            </if>
+        </where>
+    </select>
+
+        <!-- 获取商机概览数据 -->
+        <select id="getBusinessOverviewData" resultType="com.itheima.response.OverviewRsp">
+            select
+                count(1) as business_total,
+                count(if(status = 1, 1, null)) as business_wait_allot,
+                count(if(status = 2, 1, null)) as business_wait_follow,
+                count(if(status = 3, 1, null)) as business_following,
+                count(if(status = 4, 1, null)) as business_false,
+                count(if(status = 5, 1, null)) as business_convert_customer
+            from business;
+        </select>
+</mapper>
