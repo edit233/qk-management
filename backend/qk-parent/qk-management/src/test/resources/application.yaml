@@ -1,24 +1,15 @@
-#数据库连接信息
-spring:
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DB}?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
-    username: ${MYSQL_USER}
-    password: ${MYSQL_PASSWORD}
+# ============================================================================
+# 测试配置（提交到 git）
+# ============================================================================
+# 测试时 Spring Boot 会先加载 main 的 application.yaml，再加载本文件。
+# 这里**不强制**写 datasource / OSS，避免在 CI 缺环境变量时启动失败。
+# 测试代码如需真实连接，请用 @TestPropertySource 注解或测试 profile 文件。
+# ============================================================================
 
-#mybatis-plus配置
-mybatis-plus:
-  configuration:
-    map-underscore-to-camel-case: true
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
-  global-config:
-    db-config:
-      id-type: auto
-  mapper-locations: classpath*:/mappers/*.xml
-
-# OSS配置
-oss:
-  endpoint: ${OSS_ENDPOINT}
-  bucket-name: ${OSS_BUCKET_NAME}
-  access-key-id: ${OSS_ACCESS_KEY_ID}
-  access-key-secret: ${OSS_ACCESS_KEY_SECRET}
+# 测试日志只输出 warn+，让 CI 输出更干净
+logging:
+  level:
+    root: warn
+    org.springframework: warn
+    com.qk: info
+    com.itheima: info

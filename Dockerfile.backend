@@ -22,4 +22,6 @@ COPY --from=build /app/backend/qk-parent/qk-management/target/qk-management-*.ja
 
 EXPOSE 8080
 
+# 真实密钥通过环境变量注入（由 docker-compose.yml / deploy.sh 提供）
+# 占位符在 application.yaml 中已带默认值，本地 IDEA / CI 测试也能直接启动
 ENTRYPOINT ["java", "-jar", "app.jar"]

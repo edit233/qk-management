@@ -1,0 +1,309 @@
+# ============================================================================
+# qk-management 单文件流水线
+# ----------------------------------------------------------------------------
+# 设计目标：git push → 自动构建 → 自动测试 → 自动推送镜像 → 自动部署
+# ----------------------------------------------------------------------------
+# 触发规则：
+#   pull_request  → 仅 build-test（不部署、不推镜像）
+#   push (main)   → 全流程：build-test → build-push → deploy
+#   push (dev)    → 全流程，部署到 dev 环境服务器
+#   push tag v*.*.* → 全流程：build-test → build-push → deploy
+#   workflow_dispatch → 手动触发，可选输入 tag
+#
+# 镜像标签规则：
+#   main/dev    → <owner>/qk-backend:main-<short-sha> + :latest
+#   v*.*.* tag  → <owner>/qk-backend:v<tag>  + :latest
+#
+# 服务器侧密钥管理：
+#   - GitHub Secrets：DEPLOY_HOST_PROD / DEPLOY_HOST_DEV / DEPLOY_USER /
+#                     DEPLOY_SSH_KEY / DEPLOY_PORT
+#   - 服务器 .env   ：MYSQL_* / OSS_* / GHCR_OWNER（业务密钥，永远不离开服务器）
+#
+# 兼容公开 / 私有 GHCR：
+#   - 默认假设 GHCR 包设为 public，服务器可匿名 docker pull
+#   - 若 GHCR 包为 private，在服务器 .env 加 GHCR_TOKEN=<PAT> 即可
+# ============================================================================
+
+name: Pipeline
+
+on:
+  pull_request:
+    branches: [main, dev]
+  push:
+    branches: [main, dev]
+    tags: ['v*.*.*']
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: '部署分支或 tag（留空用当前默认分支）'
+        required: false
+        default: ''
+
+concurrency:
+  group: pipeline-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  REGISTRY: ghcr.io
+  BACKEND_IMAGE: ${{ github.repository_owner }}/qk-backend
+  FRONTEND_IMAGE: ${{ github.repository_owner }}/qk-frontend
+
+# ============================================================================
+# JOB 1：编译 + 单元测试（所有触发场景都跑）
+# ============================================================================
+jobs:
+  build-test:
+    name: ① 编译 & 单元测试
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+          cache-dependency-path: backend/qk-parent/**/pom.xml
+
+      - name: Cache Maven local repo
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('backend/**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Compile
+        working-directory: backend/qk-parent
+        run: mvn -B -e -ntp -DskipTests clean compile
+
+      - name: Run unit tests
+        working-directory: backend/qk-parent
+        run: mvn -B -e -ntp -Dtest='*Test' -DfailIfNoTests=false test
+
+      - name: Package jar
+        working-directory: backend/qk-parent/qk-management
+        run: mvn -B -e -ntp -DskipTests package
+
+      - name: Publish test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-surefire-reports
+          path: backend/qk-parent/**/target/surefire-reports/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Publish jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: qk-management-jar
+          path: backend/qk-parent/qk-management/target/qk-management-*.jar
+          retention-days: 7
+          if-no-files-found: ignore
+
+  # ==========================================================================
+  # JOB 2：构建 + 推送 Docker 镜像到 GHCR
+  #   - PR 跳过（避免污染镜像库）
+  #   - main / dev / tag 都跑
+  # ==========================================================================
+  build-push-image:
+    name: ② 构建 & 推送镜像
+    needs: build-test
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      packages: write
+
+    outputs:
+      image_tag: ${{ steps.meta.outputs.image_tag }}
+      deploy_ref: ${{ steps.meta.outputs.deploy_ref }}
+      env_name: ${{ steps.meta.outputs.env_name }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ---------- 解析镜像标签 ----------
+      - name: Resolve image tag & deploy env
+        id: meta
+        run: |
+          set -euo pipefail
+          case "${{ github.event_name }}" in
+            push)
+              REF="${{ github.ref }}"
+              if [[ "$REF" == refs/tags/v* ]]; then
+                TAG="${REF#refs/tags/}"            # v1.0.0
+                ENV="prod"
+              elif [[ "$REF" == refs/heads/main ]]; then
+                TAG="main-${{ github.event.pull_request.head.sha || github.sha }}"
+                ENV="prod"
+              elif [[ "$REF" == refs/heads/dev ]]; then
+                TAG="dev-${{ github.event.pull_request.head.sha || github.sha }}"
+                ENV="dev"
+              else
+                TAG="latest"
+                ENV="prod"
+              fi
+              ;;
+            workflow_dispatch)
+              INPUT="${{ inputs.ref }}"
+              if [[ "$INPUT" == v*.*.* ]]; then
+                TAG="$INPUT"
+                ENV="prod"
+              elif [[ "$INPUT" == dev* ]]; then
+                TAG="$INPUT"
+                ENV="dev"
+              else
+                TAG="main-${{ github.sha }}"
+                ENV="prod"
+              fi
+              ;;
+          esac
+          echo "image_tag=${TAG}"          >> "$GITHUB_OUTPUT"
+          echo "deploy_ref=${TAG}"         >> "$GITHUB_OUTPUT"
+          echo "env_name=${ENV}"           >> "$GITHUB_OUTPUT"
+          echo "✅ Resolved: tag=${TAG}  env=${ENV}"
+
+      - name: Download jar artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: qk-management-jar
+          path: backend/qk-parent/qk-management/target/
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # 可选：同时推送到阿里云 ACR（在 Secrets 配置 ACR_USERNAME/PASSWORD/REGISTRY 后启用）
+      - name: Log in to Aliyun ACR (optional)
+        if: ${{ secrets.ACR_USERNAME != '' }}
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.ACR_REGISTRY }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build & push backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile.backend
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE }}:${{ steps.meta.outputs.image_tag }}
+            ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE }}:latest
+            ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE }}:${{ steps.meta.outputs.image_tag }}-${{ github.run_number }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          labels: |
+            org.opencontainers.image.title=qk-backend
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+
+      - name: Build & push frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile.frontend
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE }}:${{ steps.meta.outputs.image_tag }}
+            ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE }}:latest
+            ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE }}:${{ steps.meta.outputs.image_tag }}-${{ github.run_number }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          labels: |
+            org.opencontainers.image.title=qk-frontend
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+
+      - name: Print image summary
+        run: |
+          {
+            echo "## 🚀 镜像已推送"
+            echo ""
+            echo "- **环境**: \`${{ steps.meta.outputs.env_name }}\`"
+            echo "- **镜像 tag**: \`${{ steps.meta.outputs.image_tag }}\`"
+            echo "- **后端**: \`${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE }}:${{ steps.meta.outputs.image_tag }}\`"
+            echo "- **前端**: \`${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE }}:${{ steps.meta.outputs.image_tag }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # ==========================================================================
+  # JOB 3：部署到服务器（SSH）
+  #   - 仅 push / workflow_dispatch 触发
+  #   - main → DEPLOY_HOST_PROD
+  #   - dev  → DEPLOY_HOST_DEV
+  #   - tag  → DEPLOY_HOST_PROD
+  # ==========================================================================
+  deploy:
+    name: ③ 部署到服务器
+    needs: [build-test, build-push-image]
+    if: |
+      github.event_name != 'pull_request' &&
+      (needs.build-push-image.result == 'success' || needs.build-push-image.result == 'skipped')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Resolve deploy target
+        id: target
+        run: |
+          ENV_NAME="${{ needs.build-push-image.outputs.env_name }}"
+          case "$ENV_NAME" in
+            dev)
+              HOST_SECRET="DEPLOY_HOST_DEV"
+              ;;
+            *)
+              HOST_SECRET="DEPLOY_HOST_PROD"
+              ;;
+          esac
+          echo "host_secret=${HOST_SECRET}" >> "$GITHUB_OUTPUT"
+          echo "image_tag=${{ needs.build-push-image.outputs.image_tag }}" >> "$GITHUB_OUTPUT"
+          echo "🎯 Deploy target: env=${ENV_NAME}  host_secret=${HOST_SECRET}"
+
+      - name: SSH deploy
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets[steps.target.outputs.host_secret] }}
+          username: ${{ secrets.DEPLOY_USER }}
+          port: ${{ secrets.DEPLOY_PORT || 22 }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          command_timeout: 15m
+          script: |
+            set -euo pipefail
+            cd /opt/qk-management
+
+            # 校验 .env 存在（业务密钥在服务器本地）
+            test -f .env || { echo "❌ 服务器缺少 .env，请按 README §2.3 配置"; exit 1; }
+
+            # 调用服务器侧 deploy.sh（只传 tag 一个参数）
+            bash scripts/deploy.sh "${{ steps.target.outputs.image_tag }}"
+
+      - name: Print deploy result
+        if: success()
+        run: |
+          {
+            echo "## ✅ 部署成功"
+            echo ""
+            echo "- **目标 tag**: \`${{ steps.target.outputs.image_tag }}\`"
+            echo "- **服务器**: \`${{ secrets[steps.target.outputs.host_secret] }}\`"
+            echo ""
+            echo "### 健康检查"
+            echo '```bash'
+            echo "curl -I http://<服务器IP>:90/"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

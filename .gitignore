@@ -14,6 +14,13 @@
 .env.local
 .env.*.local
 
+# Spring Boot profile 配置（密钥不进 git；模板 .example 文件仍然提交）
+**/src/**/resources/application-local.yaml
+**/src/**/resources/application-prod.yaml
+**/src/**/resources/application-*.local.yaml
+**/src/**/resources/application-*-local.yaml
+**/src/**/resources/application-*prod*.yaml
+
 # Logs
 backend/qk-parent/log/
 frontend/logs/

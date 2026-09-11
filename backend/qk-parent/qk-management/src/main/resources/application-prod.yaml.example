@@ -1,0 +1,37 @@
+# ============================================================================
+# 生产配置覆盖层（可选，提交到 git 作为参考）
+# ============================================================================
+# 当前部署方案：deploy.sh / docker-compose.yml 通过环境变量注入密钥，
+# 不需要 application-prod.yaml 文件。application.yaml 的占位符会读取
+# 容器内 SPRING_DATASOURCE_PASSWORD、OSS_ACCESS_KEY_SECRET 等环境变量。
+#
+# 如果你想用"挂载外部 yaml"方式部署（更安全，docker inspect 看不到密钥），
+# 可按下面步骤：
+#   1. 在部署服务器创建 /opt/qk-management/backend-config/ 目录
+#   2. cp application-prod.yaml.example backend-config/application-prod.yaml
+#   3. 取消注释并填入真实密钥（从服务器的 .env 读取，或手动填）
+#   4. 在 docker-compose.yml 加 volumes 挂载：
+#        - ./backend-config/application-prod.yaml:/app/config/application-prod.yaml:ro
+#   5. 启动时 SPRING_PROFILES_ACTIVE=prod
+#
+# ⚠️ backend-config/application-prod.yaml 必须放在 .gitignore 屏蔽的目录。
+# ⚠️ 真实密钥严禁提交到 git。
+# ============================================================================
+
+# 示例：完整生产配置（直接写值，不用 placeholder）
+# spring:
+#   datasource:
+#     url: jdbc:mysql://10.0.0.5:3306/qk?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+#     username: qk
+#     password: "your-real-password"     # ← 真实值
+#
+# qk:
+#   oss:
+#     endpoint: oss-cn-beijing.aliyuncs.com
+#     bucket-name: production-bucket
+#     access-key-id: "your-real-ak"
+#     access-key-secret: "your-real-sk"
+#
+# logging:
+#   level:
+#     root: info

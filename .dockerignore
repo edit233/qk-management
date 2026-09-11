@@ -1,0 +1,54 @@
+# ========== VCS ==========
+.git
+.gitignore
+.gitattributes
+.github
+.gitlab-ci.yml
+.svn
+.hg
+
+# ========== IDE ==========
+.idea
+.vscode
+*.iml
+*.ipr
+*.iws
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ========== 后端构建产物 ==========
+backend/**/target/
+backend/**/.mvn/
+backend/**/mvnw
+backend/**/mvnw.cmd
+backend/**/*.class
+backend/**/*.jar
+backend/**/*.war
+backend/**/*.log
+backend/**/hs_err_pid*
+
+# ========== 前端 ==========
+frontend/logs/
+frontend/nginx.exe
+frontend/conf/win-*
+frontend/conf/koi-*
+frontend/docs/
+frontend/contrib/
+frontend/html/nginx-*.zip
+
+# ========== 部署 / 配置（敏感信息） ==========
+.env
+.env.*
+*.env
+docker-compose.override.yml
+deploy/
+secrets/
+
+# ========== 文档 ==========
+*.md
+docs/
+LICENSE
+README*
