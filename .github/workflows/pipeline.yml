@@ -82,7 +82,8 @@ jobs:
 
       - name: Run unit tests
         working-directory: backend/qk-parent
-        run: mvn -B -e -ntp -Dtest='*Test' -DfailIfNoTests=false test
+        # surefire.failIfNoSpecifiedTests=false：允许某些模块没有匹配 *Test 的测试类（如 qk-common）
+        run: mvn -B -e -ntp -Dtest='*Test' -Dsurefire.failIfNoSpecifiedTests=false test
 
       - name: Package jar
         working-directory: backend/qk-parent/qk-management
