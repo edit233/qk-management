@@ -119,6 +119,9 @@ jobs:
     permissions:
       contents: read
       packages: write
+    env:
+      # job 级 env 可以读 secrets；step 的 if 再读这个 env（secrets 不能直接用于 if）
+      ACR_ENABLED: ${{ secrets.ACR_USERNAME != '' }}
 
     outputs:
       image_tag: ${{ steps.meta.outputs.image_tag }}
@@ -185,7 +188,7 @@ jobs:
 
       # 可选：同时推送到阿里云 ACR（在 Secrets 配置 ACR_USERNAME/PASSWORD/REGISTRY 后启用）
       - name: Log in to Aliyun ACR (optional)
-        if: ${{ secrets.ACR_USERNAME != '' }}
+        if: env.ACR_ENABLED == 'true'
         uses: docker/login-action@v3
         with:
           registry: ${{ secrets.ACR_REGISTRY }}
