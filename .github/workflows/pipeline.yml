@@ -86,7 +86,9 @@ jobs:
         run: mvn -B -e -ntp -Dtest='*Test' -Dsurefire.failIfNoSpecifiedTests=false test
 
       - name: Package jar
-        working-directory: backend/qk-parent/qk-management
+        # 必须在 reactor 顶层跑：qk-management 依赖 qk-common/qk-entity（SNAPSHOT），
+        # 单模块构建时 Maven 会去远程仓库找 SNAPSHOT，找不到直接失败
+        working-directory: backend/qk-parent
         run: mvn -B -e -ntp -DskipTests package
 
       - name: Publish test report
