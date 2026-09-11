@@ -1,6 +1,6 @@
 services:
   backend:
-    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-edit233}/qk-management-backend:${IMAGE_TAG:-latest}
+    image: ghcr.io/${GHCR_OWNER:-edit233}/qk-backend:${IMAGE_TAG:-latest}
     container_name: qk-backend
     restart: always
     environment:
@@ -24,7 +24,7 @@ services:
         condition: service_healthy
 
   frontend:
-    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-edit233}/qk-management-frontend:${IMAGE_TAG:-latest}
+    image: ghcr.io/${GHCR_OWNER:-edit233}/qk-frontend:${IMAGE_TAG:-latest}
     container_name: qk-frontend
     restart: always
     ports:
