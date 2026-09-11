@@ -46,3 +46,9 @@ frontend/docs/
 # OS
 Thumbs.db
 .DS_Store
+
+# WorkBuddy 工作区数据（本地记录，不入库）
+.workbuddy/
+
+# 本地一次性诊断/运维脚本（含服务器凭证，绝不入 git）
+scripts/*.py
