@@ -39,11 +39,13 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123456}
       MYSQL_DATABASE: ${MYSQL_DB:-qk}
-    ports:
-      - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./sql:/docker-entrypoint-initdb.d
+    # ⚠️ 安全：3306 绝不映射到宿主机！后端通过 docker 内部网络连接 mysql
+    # 曾因映射 0.0.0.0:3306 遭到勒索攻击（RECOVER_YOUR_DATA），严禁恢复此映射
+    # ports:
+    #   - "3306:3306"
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
